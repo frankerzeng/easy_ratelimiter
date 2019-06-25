@@ -1,0 +1,22 @@
+{
+  "name": "frankerzeng/easy_ratelimiter",
+  "description": "基于内存的访问频率限制",
+  "require": {
+    "php": ">=5.5.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^5"
+  },
+  "autoload": {
+    "psr-4": {
+      "EasyRatelimiter\\": "src/EasyRatelimiter/"
+    }
+  },
+  "license": "apache2.0",
+  "authors": [
+    {
+      "name": "franker",
+      "email": "frankerzeng@163.com"
+    }
+  ]
+}
