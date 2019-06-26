@@ -12,7 +12,7 @@
       "EasyRatelimiter\\": "src/EasyRatelimiter/"
     }
   },
-  "license": "apache2.0",
+  "license": "MIT",
   "authors": [
     {
       "name": "franker",

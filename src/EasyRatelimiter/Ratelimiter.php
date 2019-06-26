@@ -73,8 +73,3 @@ class RateLimiter
         return;
     }
 }
-
-
-$obj = new RateLimiter(['type'=>"ip",'times'=>2,'time'=>1]);
-$obj = $obj->request();
-var_dump($obj);
