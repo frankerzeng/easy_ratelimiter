@@ -2,6 +2,9 @@
 
 namespace EasyRatelimiter;
 
+use EasyRatelimiter\shmop\ShmopOperate;
+use EasyRatelimiter\shmop\ShmopOperateException;
+
 
 /**
  * Created by PhpStorm.
@@ -36,7 +39,7 @@ class RateLimiter
     public function __construct($config = [])
     {
         if (empty($config['type']) || empty($config['time']) || empty($config['times'])) {
-            throw new \Exception("illegal parameter");
+            throw new ShmopOperateException("illegal parameter");
         }
         switch ($config['type']) {
             case "ip":
@@ -51,11 +54,14 @@ class RateLimiter
                 if ($ip2long = ip2long($ip)) {
                     $this->limitObj = sprintf('%u', $ip2long);
                 } else {
-                    throw new \Exception("Can't get the user's IP address");
+                    throw new ShmopOperateException("Can't get the user's IP address");
                 }
                 break;
             case "session":
                 $this->limitObj = session_id();
+                if (empty($this->limitObj)) {
+                    throw new ShmopOperateException("use session_start() to start session first");
+                }
                 break;
             default:
                 $this->limitObj = $config['type'];
@@ -70,6 +76,8 @@ class RateLimiter
      */
     public function request()
     {
+        $obj = new ShmopOperate("23345345");
+        var_dump($obj->get());
         return;
     }
 }
