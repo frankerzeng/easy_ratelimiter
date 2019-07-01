@@ -13,11 +13,16 @@ namespace EasyRatelimiter\shmop;
 class ShmopOperate
 {
 
-    private $shmid = null;
+    public $shmid = null;
+    public $systemid = 0;
+    public $permissions = 0777;
+    public $mode = "c"; // Access mode
+    public $size = 1024;
+
+    public $shmids = [];
 
     /**
      * ShmopOperate constructor.
-     * @param        $systemid    System ID for the shared memory segment
      * @param string $mode        Access mode
      *                            //模式 “a”，它允许您访问只读内存段
      *                            //模式 “w”，它允许您访问可读写的内存段
@@ -27,40 +32,51 @@ class ShmopOperate
      * @param int    $size        Size, in bytes, of the segment
      * @throws ShmopOperateException
      */
-    public function __construct($systemid, $mode = "c", $permissions = 0755, $size = 1024)
+    public function __construct($mode = "c", $permissions = 0755, $size = 1024)
     {
-        if (empty($systemid)) {
-            $systemid = $id = ftok(__FILE__, "b");
-        }
-
-        $this->shmid = shmop_open($systemid, $mode, $permissions, $size);
-        if (!$this->shmid) {
-            throw new ShmopOperateException("shmop_open error");
-        }
+        $this->permissions = $permissions;
+        $this->mode        = $mode;
+        $this->size        = $size;
+        $this->systemid    = ftok(__FILE__, "z"); // System ID for the shared memory segment
     }
 
-    public function __destruct()
+    public function set($data = '')
     {
+        $this->delete();
+        $size = mb_strlen($data, 'UTF-8');
+        $this->shmid = shmop_open($this->systemid, $this->mode, $this->permissions, $size);
+        $result      = shmop_write($this->shmid, $data, 0);
         shmop_close($this->shmid);
-    }
 
-    public function set($data)
-    {
-        $result = shmop_write($this->shmid, "Hello World!", 0);
         if (!$result) {
             throw new ShmopOperateException("shmop_write error");
         }
     }
 
-    public function get()
+    public function delete()
     {
-        $size = shmop_size($this->shmid);
-        return shmop_read($this->shmid, 0, $size);
+        $shmid = @shmop_open($this->systemid, $this->mode, $this->permissions, 1);
+        if ($shmid) {
+            shmop_delete($shmid);
+            shmop_close($shmid);
+        }
     }
 
-    public function del()
+    public function get()
     {
-        shmop_delete($this->shmid);
+        $this->shmid = @shmop_open($this->systemid, $this->mode, $this->permissions, 1);
+        if (!$this->shmid) {
+            return '';
+        }
+
+//        $semid = sem_get($this->shmid); # 请求信号控制权
+//        if (sem_acquire($semid)) {
+//
+//        }
+
+        $rst = shmop_read($this->shmid, 0, shmop_size($this->shmid));
+        shmop_close($this->shmid);
+        return $rst;
     }
 
 

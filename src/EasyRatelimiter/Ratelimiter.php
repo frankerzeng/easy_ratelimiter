@@ -3,7 +3,6 @@
 namespace EasyRatelimiter;
 
 use EasyRatelimiter\shmop\ShmopOperate;
-use EasyRatelimiter\shmop\ShmopOperateException;
 
 
 /**
@@ -21,7 +20,7 @@ class RateLimiter
      */
     private $limitObj = '';
 
-    /**限制频率和次数
+    /**限制时间和次数
      * @var int
      */
     private $limitTime, $limitTimes = 0;
@@ -39,8 +38,10 @@ class RateLimiter
     public function __construct($config = [])
     {
         if (empty($config['type']) || empty($config['time']) || empty($config['times'])) {
-            throw new ShmopOperateException("illegal parameter");
+            throw new \Exception("illegal parameter");
         }
+        $this->limitTime  = $config['time'];
+        $this->limitTimes = $config['times'];
         switch ($config['type']) {
             case "ip":
                 $ip = $_SERVER['REMOTE_ADDR'];
@@ -54,13 +55,13 @@ class RateLimiter
                 if ($ip2long = ip2long($ip)) {
                     $this->limitObj = sprintf('%u', $ip2long);
                 } else {
-                    throw new ShmopOperateException("Can't get the user's IP address");
+                    throw new \Exception("Can't get the user's IP address");
                 }
                 break;
             case "session":
                 $this->limitObj = session_id();
                 if (empty($this->limitObj)) {
-                    throw new ShmopOperateException("use session_start() to start session first");
+                    throw new \Exception("use session_start() to start session first");
                 }
                 break;
             default:
@@ -71,13 +72,69 @@ class RateLimiter
 
     /**
      * 是否超过限制
+     * 维护一个map，过期后自动删除
      * @return bool
      * @throws \Exception
      */
     public function request()
     {
-        $obj = new ShmopOperate("23345345");
-        var_dump($obj->get());
-        return;
+        $return = true;
+        $info   = trim((new ShmopOperate())->get());
+        var_dump($info);
+
+        if (!empty($info) and $info != "") {
+            $info = json_decode($info, true);
+            $this->deleteExpire($info);
+
+            if (isset($info[$this->limitObj])) {
+                if (count($info[$this->limitObj]['t']) < $this->limitTimes) {
+                    $info[$this->limitObj]['t'][] = microtime(true);
+                } else { // 只有次数达到最大才返回false
+                    $return = false;
+                }
+            } else {
+                $info[$this->limitObj] = [ // todo 应该是多维数组
+                    'lts' => $this->limitTimes,
+                    'lt'  => $this->limitTime,
+                    't'   => [microtime(true)],
+                ];
+            }
+        } else {
+            $info[$this->limitObj] = [
+                'lts' => $this->limitTimes,
+                'lt'  => $this->limitTime,
+                't'   => [microtime(true)],
+            ];
+        }
+
+        (new ShmopOperate())->set(json_encode($info));
+
+        return $return;
     }
+
+    /**
+     * 删除过期数据
+     */
+    public function deleteExpire(array &$info)
+    {
+        $rst  = [];
+        $time = time();
+        foreach ($info as $itemKey => $item) {
+            $tmp = [];
+            foreach ($item['t'] as $it) {
+                if ($time < ($it + $item['lt'])) {
+                    $tmp[] = $it;
+                }
+            }
+            if (!empty($tmp)) {
+                $rst[$itemKey] = [
+                    'lts' => $item['lts'],
+                    'lt'  => $item['lt'],
+                    't'   => $tmp,
+                ];
+            }
+        }
+        $info = $rst;
+    }
+
 }
