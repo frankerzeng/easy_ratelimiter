@@ -5,7 +5,9 @@
 
 ## Setup/Installation
 You can include this library by running:  
-`composer require frankerzeng/easy_ratelimiter`
+`
+composer require frankerzeng/easy_ratelimiter
+`
 
 ### Example
 ```php
