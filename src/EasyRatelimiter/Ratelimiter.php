@@ -76,11 +76,10 @@ class RateLimiter
      * @return bool
      * @throws \Exception
      */
-    public function request()
+    public function check()
     {
         $return = true;
         $info   = trim((new ShmopOperate())->get());
-        var_dump($info);
 
         if (!empty($info) and $info != "") {
             $info = json_decode($info, true);
@@ -89,11 +88,11 @@ class RateLimiter
             if (isset($info[$this->limitObj])) {
                 if (count($info[$this->limitObj]['t']) < $this->limitTimes) {
                     $info[$this->limitObj]['t'][] = microtime(true);
-                } else { // 只有次数达到最大才返回false
-                    $return = false;
+                } else {
+                    $return = false; // 只有次数达到最大才返回false
                 }
             } else {
-                $info[$this->limitObj] = [ // todo 应该是多维数组
+                $info[$this->limitObj] = [
                     'lts' => $this->limitTimes,
                     'lt'  => $this->limitTime,
                     't'   => [microtime(true)],
@@ -114,6 +113,7 @@ class RateLimiter
 
     /**
      * 删除过期数据
+     * @param array $info
      */
     public function deleteExpire(array &$info)
     {

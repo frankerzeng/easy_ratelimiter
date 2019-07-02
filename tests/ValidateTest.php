@@ -21,24 +21,17 @@ class ValidateTest extends TestCase
      */
     public function testIsMobile()
     {
-        $validate = Ratelimiter::factory("CN");
-        $this->assertEquals(false, $validate->isMobile("176666"));
-        $this->assertEquals(true, $validate->isMobile("17665353177"));
+        $validate = (new Ratelimiter(['type' => "17665544332", 'times' => 2, 'time' => 10]))->check();
+        $this->assertEquals(true, $validate);
+        $validate = (new Ratelimiter(['type' => "17665544332", 'times' => 2, 'time' => 10]))->check();
+        $this->assertEquals(true, $validate);
+        $validate = (new Ratelimiter(['type' => "17665544332", 'times' => 2, 'time' => 10]))->check();
+        $this->assertEquals(false, $validate);
 
-        $validate = Ratelimiter::factory("DE");
-        $this->assertEquals(false, $validate->isMobile("16"));
-        $this->assertEquals(true, $validate->isMobile("01511234567"));
-        $this->assertEquals(true, $validate->isMobile("00491511234567"));
-        $this->assertEquals(true, $validate->isMobile("1511234567"));
-
-        $rateLimiter = new RateLimiter(['type'=>"ip"]);
-        try {
-            // allow a maximum of 100 requests for the IP in 5 minutes
-            $rateLimiter->limitRequestsInMinutes(100, 5);
-        } catch (RateExceededException $e) {
-            header("HTTP/1.0 529 Too Many Requests");
-            exit;
-        }
+        $validate = (new Ratelimiter(['type' => "frankerzeng@163.com", 'times' => 1, 'time' => 10]))->check();
+        $this->assertEquals(true, $validate);
+        $validate = (new Ratelimiter(['type' => "frankerzeng@163.com", 'times' => 1, 'time' => 10]))->check();
+        $this->assertEquals(false, $validate);
 
     }
 }

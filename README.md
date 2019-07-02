@@ -1,7 +1,7 @@
 # php ratelimiter reference Guava Ratelimiter 
 基于内存的访问频率限制
 
-作者在项目中用到的地方是登录时限制登录次数，如10分钟内只能重试5次、短信验证码1分钟内最多发一次，24小时内最多发5次
+作者在项目中用到的地方是登录时限制登录次数，如10分钟内只能重试5次、短信验证码1分钟内最多发一次，24小时内最多发5次等
 
 ## Setup/Installation
 You can include this library by running:  
@@ -9,17 +9,18 @@ You can include this library by running:
 
 ### Example
 ```php
-$isMobile=Validate::factory("CN")->isMobile("17634342323");
-var_dump($isMobile);// bool(true)
+// 验证10秒内2次访问
+$validate = (new Ratelimiter(['type' => "17665544332", 'times' => 2, 'time' => 10]))->check();
+var_dump($validate);// bool(true)
 ```
 
-### 调试
+### Debug
 进入服务器控制共享内存
 ipcs -m 查看本机共享内存的状态和统计
 
 ipcrm -m shmid 清除共享内存中的数据。
 
-### 注意事项
+### Notice
 - 需要开启shmop拓展
 
     在Dockerfile中加入RUN docker-php-ext-install shmop
