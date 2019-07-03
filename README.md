@@ -21,6 +21,7 @@ var_dump($validate);// bool(false)
 
 ### Debug
 进入服务器控制共享内存
+
 ipcs -m 查看本机共享内存的状态和统计
 
 ipcrm -m shmid 清除共享内存中的数据。
