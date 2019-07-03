@@ -1,4 +1,4 @@
-# php ratelimiter reference Guava Ratelimiter 
+# php ratelimiter
 基于内存的访问频率限制
 
 作者在项目中用到的地方是登录注册风控，限制登录请求的次数，如10分钟内只能重试5次、短信验证码1分钟内最多发一次，24小时内最多发5次等
